@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const API_BASE = import.meta.env.VITE_API_URL || 'https://yatra-ai-8fc5.onrender.com'
 const OPENWEATHER_KEY = import.meta.env.VITE_OPENWEATHER_KEY || ''
 
 // ── Axios instance ────────────────────────────────────────────────────────────
