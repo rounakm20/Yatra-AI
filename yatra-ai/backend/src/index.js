@@ -18,14 +18,8 @@ const PORT = process.env.PORT || 3001
 // ── Security ────────────────────────────────────────────────────────────────
 app.use(helmet())
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:5173',
-    'https://*.vercel.app',
-    /\.vercel\.app$/,
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: true,
+  credentials: true
 }))
 
 // ── Rate limiting ────────────────────────────────────────────────────────────
