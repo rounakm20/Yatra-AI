@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { User, Mail, Save, BookMarked, Map, Calendar, Edit3, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -22,15 +22,38 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(user?.name || '')
   const [saving, setSaving] = useState(false)
+  const [imgError, setImgError] = useState(false)
+  const [previewAvatar, setPreviewAvatar] = useState(null)
+  const fileInputRef = useRef(null)
 
   const handleSave = async () => {
     setSaving(true)
     await new Promise(r => setTimeout(r, 600))
-    updateProfile({ name })
+    const updates = { name }
+    if (previewAvatar) updates.avatar = previewAvatar
+    updateProfile(updates)
     setEditing(false)
     setSaving(false)
+    setPreviewAvatar(null)
     toast('Profile updated!', 'success')
   }
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      toast('Image size should be less than 2MB', 'error')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      setPreviewAvatar(ev.target.result)
+      setImgError(false)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const currentAvatar = previewAvatar || (!imgError ? user?.avatar : null)
 
   const initials = (user?.name || 'U')
     .split(' ')
@@ -48,7 +71,7 @@ export default function ProfilePage() {
   const destinations = ['Goa', 'Rajasthan', 'Kerala', 'Manali', 'Varanasi', 'Udaipur']
 
   return (
-    <div style={{ minHeight: '100vh', background: T.cream, padding: '40px 28px', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: T.cream, padding: '80px 28px 40px', fontFamily: 'system-ui, sans-serif' }}>
 
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
@@ -77,6 +100,15 @@ export default function ProfilePage() {
           <div style={{ position: 'absolute', top: '-30px', left: '-30px', width: 160, height: 160, borderRadius: '50%', background: `radial-gradient(circle, ${T.forestMid}80, transparent 70%)`, pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: `radial-gradient(circle, ${T.sage}30, transparent 70%)`, pointerEvents: 'none' }} />
 
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleImageChange}
+          />
+
           {/* Avatar */}
           <div style={{ position: 'relative', zIndex: 2, display: 'inline-block', marginBottom: 14 }}>
             <div style={{
@@ -87,12 +119,23 @@ export default function ProfilePage() {
               fontFamily: 'Georgia, serif', fontSize: 28, fontWeight: 700, color: T.cream,
               overflow: 'hidden',
             }}>
-              {user?.avatar
-                ? <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : initials
-              }
+              {currentAvatar ? (
+                <img
+                  src={currentAvatar}
+                  alt={user?.name}
+                  referrerPolicy="no-referrer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <span>{initials}</span>
+              )}
             </div>
+
+            {/* Camera button */}
             <button
+              onClick={() => fileInputRef.current?.click()}
+              title="Change profile photo"
               style={{
                 position: 'absolute', bottom: -6, right: -6,
                 width: 26, height: 26, borderRadius: 8,
@@ -103,13 +146,27 @@ export default function ProfilePage() {
               onMouseEnter={e => e.currentTarget.style.background = T.sandLight}
               onMouseLeave={e => e.currentTarget.style.background = T.sage}
             >
-              {/* camera icon inline svg to avoid import issues */}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.forest} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                 <circle cx="12" cy="13" r="4"/>
               </svg>
             </button>
           </div>
+
+          {/* Preview notice */}
+          {previewAvatar && (
+            <div style={{
+              position: 'relative', zIndex: 2,
+              marginBottom: 8,
+              fontSize: 10, color: T.sandLight,
+              background: `${T.forestMid}90`,
+              border: `1px solid ${T.sage}40`,
+              padding: '3px 8px', borderRadius: 20,
+              display: 'inline-block',
+            }}>
+              📷 Save karo apply karne ke liye
+            </div>
+          )}
 
           <p style={{ position: 'relative', zIndex: 2, fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: T.cream, marginBottom: 4 }}>
             {user?.name}
@@ -272,7 +329,7 @@ export default function ProfilePage() {
                   }
                 </button>
                 <button
-                  onClick={() => { setEditing(false); setName(user?.name || '') }}
+                  onClick={() => { setEditing(false); setName(user?.name || ''); setPreviewAvatar(null) }}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 5,
                     background: 'transparent', color: T.sage,

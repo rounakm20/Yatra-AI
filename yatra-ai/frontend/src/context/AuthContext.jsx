@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { authApi } from '../utils/api'
+import { signInWithGoogle } from '../utils/firebase'
 
 const AuthContext = createContext(null)
 
@@ -37,16 +38,10 @@ export function AuthProvider({ children }) {
     return result.user
   }
 
-  const loginWithGoogle = async (googlePayload) => {
-    // googlePayload: { googleId, email, name, avatar }
-    // In production, get this from Firebase Auth or Google Identity
-    const mockPayload = googlePayload || {
-      googleId: 'google_' + Math.random().toString(36).substr(2, 9),
-      email: 'traveler@gmail.com',
-      name: 'Arjun Sharma',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=google',
-    }
-    const result = await authApi.googleLogin(mockPayload)
+  const loginWithGoogle = async () => {
+    // Real Firebase Google Sign-In
+    const googlePayload = await signInWithGoogle()
+    const result = await authApi.googleLogin(googlePayload)
     setUser(result.user)
     localStorage.setItem('yatra_user', JSON.stringify(result.user))
     return result.user
