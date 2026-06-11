@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAWbWoeTMMcn4ElJkefglBLIciJ431pLX4",
+  apiKey:import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "yatra-ai-9c996.firebaseapp.com",
   projectId: "yatra-ai-9c996",
   storageBucket: "yatra-ai-9c996.firebasestorage.app",
